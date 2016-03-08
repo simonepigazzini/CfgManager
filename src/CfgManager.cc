@@ -7,7 +7,7 @@
 bool CfgManager::OptExist(string key, int opt)
 {
     for(auto& iopt : opts_)
-        if(iopt.first.find(key) != string::npos && iopt.second.size()>opt)
+        if(iopt.first == "opts."+key && iopt.second.size()>opt)
             return true;
 
     return false;
@@ -62,8 +62,8 @@ void CfgManager::ParseConfigFile(const char* file)
             tokens.pop_back();
             getline(cfgFile, buffer);
             ParseSingleLine(buffer, tokens);
-        }
-
+        }       
+        
         //---new block
         if(tokens.at(0).at(0) == '<')
         {
@@ -91,12 +91,41 @@ void CfgManager::ParseConfigFile(const char* file)
             for(auto& cfgFile: tokens)
                 ParseConfigFile(cfgFile.c_str());
         }
-        //---add key
-        else 
+        //---option line
+        else
         {
             string key=tokens.at(0);
             tokens.erase(tokens.begin());
-            opts_[current_block+"."+key] = tokens;
+            
+            //---update key
+            if(key.substr(key.size()-2) == "+=")
+            {
+                key = key.substr(0, key.size()-2);
+                for(auto& token : tokens)
+                {
+                    if(OptExist(token))
+                    {
+                        auto extend_opt = GetOpt<vector<string> >(token);
+                        opts_[current_block+"."+key].insert(opts_[current_block+"."+key].end(),
+                                                            extend_opt.begin(),
+                                                            extend_opt.end());
+                    }
+                    else
+                        opts_[current_block+"."+key].push_back(token);
+                }
+            }
+            //---copy key
+            else if(key.substr(key.size()-1) == "=" && tokens.size() > 0)
+            {
+                key = key.substr(0, key.size()-1);
+                if(OptExist(tokens.at(0)))
+                    opts_[current_block+"."+key] = GetOpt<vector<string> >(tokens.at(0));
+                else
+                    cout << "> CfgManager --- ERROR: undefined option // " << tokens.at(0) << endl;
+            }
+            //---new key
+            else 
+                opts_[current_block+"."+key] = tokens;
         }
     }
     cfgFile.close();
