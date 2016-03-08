@@ -26,9 +26,9 @@ void CfgManager::ParseSingleLine(const string& line, vector<string>& tokens)
         if(pos > prev)
             tokens.push_back(line.substr(prev, pos-prev));
         prev = pos+1;
-        if(line[prev] == '\"')
+        if(line[prev] == '\'')
         {
-            delimiter = "\"";
+            delimiter = "\'";
             ++prev;
         }
         else
