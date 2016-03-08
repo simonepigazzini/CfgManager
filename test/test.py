@@ -13,6 +13,9 @@ sys.argv = oldargv
 ROOT.gSystem.Load("lib/CfgManagerDict.so")
 
 cfg = ROOT.CfgManager("test/test.cfg")
+cfg.ParseConfigString("test2.addedFromString 'new option from string'")
+cfg.ParseConfigString("test2.addedFromString+= work like a charm")
+cfg.ParseConfigString("test2.add+= 'added from py' great")
 
 cfg.Print()
 

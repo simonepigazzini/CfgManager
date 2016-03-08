@@ -41,8 +41,9 @@ public:
 
     //---utils
     bool                   OptExist(string key, int opt=0);
-    inline void            ParseConfigFile(string* file) {ParseConfigFile(file->c_str());};
+    inline void            ParseConfigFile(const string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
+    void                   ParseConfigString(const string config);
     virtual void           Print(Option_t* option="") const;   
     
     //---operators---
@@ -51,6 +52,7 @@ public:
 private:
     //---utils---
     void                    ParseSingleLine(const string& line, vector<string>& tokens);
+    void                    HandleOption(string& current_block, vector<string>& tokens);
     void                    Errors(string key, int opt=0);
 
 private:
