@@ -100,6 +100,7 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
     //---new block
     if(tokens.at(0).at(0) == '<')
     {
+        //---close previous block
         if(tokens.at(0).at(1) == '/')
         {
             tokens.at(0).erase(tokens.at(0).begin(), tokens.at(0).begin()+2);
@@ -110,12 +111,20 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
             else
                 cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << endl;
         }
+        //---open new block
         else
         {
             tokens.at(0).erase(tokens.at(0).begin());
             tokens.at(0).erase(--tokens.at(0).end());
             current_block += "."+tokens.at(0);
         }
+    }
+    //---copy block
+    else if(tokens.at(0) == "copyBlocks")
+    {
+        tokens.erase(tokens.begin());
+        for(auto& block_to_copy: tokens)
+            CopyBlock(current_block, block_to_copy);
     }
     //---import cfg
     else if(tokens.at(0) == "importCfg")
@@ -160,6 +169,30 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
         else 
             opts_[current_block+"."+key] = tokens;
     }
+
+    return;
+}
+
+//----------Copy entire block-------------------------------------------------------------
+//---already defined option are overridden
+void CfgManager::CopyBlock(string& current_block, string& block_to_copy)
+{
+    bool found_any=false;
+    //---copy block entries
+    for(auto& opt : opts_)
+    {
+        string key = opt.first;
+        vector<string> opts = opt.second;
+        if(key.find(block_to_copy) != string::npos)
+        {
+            string new_key = key;
+            new_key.replace(key.find(block_to_copy), block_to_copy.size(), current_block.substr(5));
+            opts_[new_key] = opts;
+        }
+    }
+    //---block not found
+    if(!found_any)
+        cout << "> CfgManager --- WARNING: requested block (" << block_to_copy << ") is not defined" << endl;
 
     return;
 }

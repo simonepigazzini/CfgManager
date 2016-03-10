@@ -53,6 +53,7 @@ private:
     //---utils---
     void                    ParseSingleLine(const string& line, vector<string>& tokens);
     void                    HandleOption(string& current_block, vector<string>& tokens);
+    void                    CopyBlock(string& current_block, string& block_to_copy);
     void                    Errors(string key, int opt=0);
 
 private:
