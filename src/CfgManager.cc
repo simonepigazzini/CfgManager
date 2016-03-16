@@ -62,7 +62,6 @@ void CfgManager::ParseConfigFile(const char* file)
             getline(cfgFile, buffer);
             ParseSingleLine(buffer, tokens);
         }
-
         //---store the option inside the current configuration
         HandleOption(current_block, tokens);
     }
@@ -97,9 +96,9 @@ void CfgManager::ParseConfigString(const string config)
 //---private methode called by ParseConfig public methods
 void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
 {
-    //---new block
+    //---Handle blocks
     if(tokens.at(0).at(0) == '<')
-    {
+    {        
         //---close previous block
         if(tokens.at(0).at(1) == '/')
         {
@@ -109,23 +108,34 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
             if(tokens.at(0) == current_block.substr(last_dot+1))
                 current_block.erase(last_dot);
             else
+            {
                 cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << endl;
+                exit(-1);
+            }
         }
         //---open new block
-        else
+        else 
         {
+            bool copy_blocks=false;
+            
             tokens.at(0).erase(tokens.at(0).begin());
-            tokens.at(0).erase(--tokens.at(0).end());
+            //---check if blocks copy is required
+            if(tokens.at(0).back() == '=')
+            {
+                copy_blocks=true;
+                tokens.back().erase(--tokens.back().end());
+            }
+            tokens.at(0).erase(--tokens.at(0).end());            
             current_block += "."+tokens.at(0);
+            //---copy from other blocks
+            if(copy_blocks)
+            {
+                tokens.erase(tokens.begin());
+                for(auto& block_to_copy: tokens)
+                    CopyBlock(current_block, block_to_copy);
+            }
         }
-    }
-    //---copy block
-    else if(tokens.at(0) == "copyBlocks")
-    {
-        tokens.erase(tokens.begin());
-        for(auto& block_to_copy: tokens)
-            CopyBlock(current_block, block_to_copy);
-    }
+    }    
     //---import cfg
     else if(tokens.at(0) == "importCfg")
     {
@@ -182,12 +192,15 @@ void CfgManager::CopyBlock(string& current_block, string& block_to_copy)
     for(auto& opt : opts_)
     {
         string key = opt.first;
-        vector<string> opts = opt.second;
-        if(key.find(block_to_copy) != string::npos)
+        size_t pos = key.find("."+block_to_copy+".");
+        if(pos != string::npos)
         {
             string new_key = key;
-            new_key.replace(key.find(block_to_copy), block_to_copy.size(), current_block.substr(5));
+            vector<string>& opts = opt.second;
+            new_key.replace(pos+1, block_to_copy.size(), current_block.substr(5));
             opts_[new_key] = opts;
+
+            found_any=true;
         }
     }
     //---block not found
