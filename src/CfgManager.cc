@@ -4,7 +4,7 @@
 //**********utils*************************************************************************
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(string key, int opt)
+bool CfgManager::OptExist(std::string key, int opt)
 {
     for(auto& iopt : opts_)
         if(iopt.first == "opts."+key && iopt.second.size()>opt)
@@ -14,14 +14,14 @@ bool CfgManager::OptExist(string key, int opt)
 }
 
 //----------Help method, parse single line------------------------------------------------
-void CfgManager::ParseSingleLine(const string& line, vector<string>& tokens)
+void CfgManager::ParseSingleLine(const std::string& line, std::vector<std::string>& tokens)
 {
     //---parsing utils
     size_t prev=0, pos;
-    string delimiter=" ";
+    std::string delimiter=" ";
 
     //---line loop
-    while((pos = line.find_first_of(delimiter, prev)) != string::npos)
+    while((pos = line.find_first_of(delimiter, prev)) != std::string::npos)
     {
         if(pos > prev)
             tokens.push_back(line.substr(prev, pos-prev));
@@ -35,7 +35,7 @@ void CfgManager::ParseSingleLine(const string& line, vector<string>& tokens)
             delimiter = " ";
     }
     if(prev < line.length())
-        tokens.push_back(line.substr(prev, string::npos));
+        tokens.push_back(line.substr(prev, std::string::npos));
 
     return;
 }
@@ -43,18 +43,18 @@ void CfgManager::ParseSingleLine(const string& line, vector<string>& tokens)
 //----------Parse configuration file and setup the configuration--------------------------
 void CfgManager::ParseConfigFile(const char* file)
 {
-    cout << "> CfgManager --- INFO: parsing " << file << endl;
+    std::cout << "> CfgManager --- INFO: parsing " << file << std::endl;
     //---read config file
-    ifstream cfgFile(file, ios::in);
-    string buffer;
-    string current_block="opts";
+    std::ifstream cfgFile(file, std::ios::in);
+    std::string buffer;
+    std::string current_block="opts";
     while(getline(cfgFile, buffer))
     {
         if(buffer.size() == 0 || buffer.at(0) == '#')
             continue;        
 
         //---parse the current line
-        vector<string> tokens;
+        std::vector<std::string> tokens;
         ParseSingleLine(buffer, tokens);
         while(tokens.back() == "\\")
         {
@@ -70,22 +70,22 @@ void CfgManager::ParseConfigFile(const char* file)
     //---set automatic info
     char hostname[100];
     gethostname(hostname, 100);
-    username_ = string(getpwuid(getuid())->pw_name)+"@"+hostname;
+    username_ = std::string(getpwuid(getuid())->pw_name)+"@"+hostname;
     time_t rawtime;
     time(&rawtime);
     struct tm* t = localtime(&rawtime);
-    timestamp_ = to_string(t->tm_mday)+"/"+to_string(t->tm_mon)+"/"+to_string(t->tm_year+1900)+"  "+
-        to_string(t->tm_hour)+":"+to_string(t->tm_min)+":"+to_string(t->tm_sec);
+    timestamp_ = std::to_string(t->tm_mday)+"/"+std::to_string(t->tm_mon)+"/"+std::to_string(t->tm_year+1900)+"  "+
+        std::to_string(t->tm_hour)+":"+std::to_string(t->tm_min)+":"+std::to_string(t->tm_sec);
 
     return;
 }
 
 //----------Parse configuration string and setup the configuration------------------------
-void CfgManager::ParseConfigString(const string config)
+void CfgManager::ParseConfigString(const std::string config)
 {
-    string current_block="opts";
+    std::string current_block="opts";
     //---parse the current string
-    vector<string> tokens;
+    std::vector<std::string> tokens;
     ParseSingleLine(config, tokens);
     HandleOption(current_block, tokens);
 
@@ -94,7 +94,7 @@ void CfgManager::ParseConfigString(const string config)
 
 //----------Handle single option: key and parameters--------------------------------------
 //---private methode called by ParseConfig public methods
-void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
+void CfgManager::HandleOption(std::string& current_block, std::vector<std::string>& tokens)
 {
     //---Handle blocks
     if(tokens.at(0).at(0) == '<')
@@ -109,7 +109,7 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
                 current_block.erase(last_dot);
             else
             {
-                cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << endl;
+                std::cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << std::endl;
                 exit(-1);
             }
         }
@@ -146,7 +146,7 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
     //---option line
     else
     {
-        string key=tokens.at(0);
+        std::string key=tokens.at(0);
         tokens.erase(tokens.begin());
             
         //---update key
@@ -157,7 +157,7 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
             {
                 if(OptExist(token))
                 {
-                    auto extend_opt = GetOpt<vector<string> >(token);
+                    auto extend_opt = GetOpt<std::vector<std::string> >(token);
                     opts_[current_block+"."+key].insert(opts_[current_block+"."+key].end(),
                                                         extend_opt.begin(),
                                                         extend_opt.end());
@@ -171,9 +171,9 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
         {
             key = key.substr(0, key.size()-1);
             if(OptExist(tokens.at(0)))
-                opts_[current_block+"."+key] = GetOpt<vector<string> >(tokens.at(0));
+                opts_[current_block+"."+key] = GetOpt<std::vector<std::string> >(tokens.at(0));
             else
-                cout << "> CfgManager --- WARNING: undefined option // " << tokens.at(0) << endl;
+                std::cout << "> CfgManager --- WARNING: undefined option // " << tokens.at(0) << std::endl;
         }
         //---new key
         else 
@@ -185,18 +185,18 @@ void CfgManager::HandleOption(string& current_block, vector<string>& tokens)
 
 //----------Copy entire block-------------------------------------------------------------
 //---already defined option are overridden
-void CfgManager::CopyBlock(string& current_block, string& block_to_copy)
+void CfgManager::CopyBlock(std::string& current_block, std::string& block_to_copy)
 {
     bool found_any=false;
     //---copy block entries
     for(auto& opt : opts_)
     {
-        string key = opt.first;
+        std::string key = opt.first;
         size_t pos = key.find("."+block_to_copy+".");
-        if(pos != string::npos)
+        if(pos != std::string::npos)
         {
-            string new_key = key;
-            vector<string>& opts = opt.second;
+            std::string new_key = key;
+            std::vector<std::string>& opts = opt.second;
             new_key.replace(pos+1, block_to_copy.size(), current_block.substr(5));
             opts_[new_key] = opts;
 
@@ -205,7 +205,7 @@ void CfgManager::CopyBlock(string& current_block, string& block_to_copy)
     }
     //---block not found
     if(!found_any)
-        cout << "> CfgManager --- WARNING: requested block (" << block_to_copy << ") is not defined" << endl;
+        std::cout << "> CfgManager --- WARNING: requested block (" << block_to_copy << ") is not defined" << std::endl;
 
     return;
 }
@@ -214,54 +214,54 @@ void CfgManager::CopyBlock(string& current_block, string& block_to_copy)
 //---option is the key to be print: default value meas "all keys"
 void CfgManager::Print(Option_t* option) const
 {
-    string argkey = option;
+    std::string argkey = option;
     //---banner
-    string banner = "configuration was created by "+username_+" on "+timestamp_;
+    std::string banner = "configuration was created by "+username_+" on "+timestamp_;
     for(int i=0; i<banner.size(); ++i)
-        cout << "=";
-    cout << endl;
-    cout << banner << endl;
+        std::cout << "=";
+    std::cout << std::endl;
+    std::cout << banner << std::endl;
     for(int i=0; i<banner.size(); ++i)
-        cout << "=";
-    cout << endl;
+        std::cout << "=";
+    std::cout << std::endl;
     
     //---options
-    string prev_block="";
+    std::string prev_block="";
     for(auto& key : opts_)
     {
-        string current_block = key.first.substr(5, key.first.find_last_of(".")-5);
-        if(argkey == "" || key.first.find(argkey) != string::npos)
+        std::string current_block = key.first.substr(5, key.first.find_last_of(".")-5);
+        if(argkey == "" || key.first.find(argkey) != std::string::npos)
         {
             if(current_block != prev_block)
             {
                 if(prev_block != "")
-                    cout << "+----------" << endl;
-                cout << current_block << ":" << endl;
+                    std::cout << "+----------" << std::endl;
+                std::cout << current_block << ":" << std::endl;
                 prev_block = current_block;
             }
-            cout << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
+            std::cout << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
             for(auto& opt : key.second)
-                cout << opt << ", " ;
-            cout << endl;
+                std::cout << opt << ", " ;
+            std::cout << std::endl;
         }
     }
-    cout << "+----------" << endl;
+    std::cout << "+----------" << std::endl;
 
     return;
 }
 
 //----------Internal error check----------------------------------------------------------
-void CfgManager::Errors(string key, int opt)
+void CfgManager::Errors(std::string key, int opt)
 {
     if(opts_.count(key) == 0)
     {
-        cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << endl;
+        std::cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << std::endl;
         exit(-1);
     }
     if(opt >= opts_[key].size())
     {
-        cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
-             << opt << "values (" << opts_[key].size() << ")" << endl;
+        std::cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
+             << opt << "values (" << opts_[key].size() << ")" << std::endl;
         exit(-1);
     }
     return;
@@ -269,16 +269,16 @@ void CfgManager::Errors(string key, int opt)
 
 //**********operators*********************************************************************
 
-ostream& operator<<(ostream& out, const CfgManager& obj)
+std::ostream& operator<<(std::ostream& out, const CfgManager& obj)
 {
     //---banner
-    out << "configuration: " << endl;
+    out << "configuration: " << std::endl;
     //---options
     for(auto& key : obj.opts_)
     {
-        out << key.first.substr(5) << ":" << endl;
+        out << key.first.substr(5) << ":" << std::endl;
         for(auto& opt : key.second)
-            out << "\t" << opt << endl;
+            out << "\t" << opt << std::endl;
     }
     return out;
 }

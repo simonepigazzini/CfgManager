@@ -18,48 +18,46 @@
 
 #include "TObject.h"
 
-using namespace std;
-
 class CfgManager: public TObject
 {
 public:
     //---ctors---
     CfgManager() {};
-    CfgManager(map<string, vector<string> >* defaultCfg) {opts_=*defaultCfg;};
+    CfgManager(std::map<std::string, std::vector<std::string> >* defaultCfg) {opts_=*defaultCfg;};
     CfgManager(const char* file) {ParseConfigFile(file);};
     //---dtor---
     ~CfgManager() {};
 
     //---getters---
-    template<typename T=bool> T GetOpt(string key, int opt=0);
+    template<typename T=std::string> T GetOpt(std::string key, int opt=0);
                     
     //---setters---
-    inline void            SetOpt(const char* key, vector<string>& v_opt)
-        {opts_["opts."+string(key)]=v_opt;};
-    inline void            SetOpt(string& key, vector<string>& v_opt)
+    inline void            SetOpt(const char* key, std::vector<std::string>& v_opt)
+        {opts_["opts."+std::string(key)]=v_opt;};
+    inline void            SetOpt(std::string& key, std::vector<std::string>& v_opt)
         {opts_["opts."+key]=v_opt;};
 
     //---utils
-    bool                   OptExist(string key, int opt=0);
-    inline void            ParseConfigFile(const string file) {ParseConfigFile(file.c_str());};
+    bool                   OptExist(std::string key, int opt=0);
+    inline void            ParseConfigFile(const std::string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
-    void                   ParseConfigString(const string config);
+    void                   ParseConfigString(const std::string config);
     virtual void           Print(Option_t* option="") const;   
     
     //---operators---
-    friend ostream& operator<<(ostream& out, const CfgManager& obj);
+    friend std::ostream& operator<<(std::ostream& out, const CfgManager& obj);
 
 private:
     //---utils---
-    void                    ParseSingleLine(const string& line, vector<string>& tokens);
-    void                    HandleOption(string& current_block, vector<string>& tokens);
-    void                    CopyBlock(string& current_block, string& block_to_copy);
-    void                    Errors(string key, int opt=0);
+    void                    ParseSingleLine(const std::string& line, std::vector<std::string>& tokens);
+    void                    HandleOption(std::string& current_block, std::vector<std::string>& tokens);
+    void                    CopyBlock(std::string& current_block, std::string& block_to_copy);
+    void                    Errors(std::string key, int opt=0);
 
 private:
-    map<string, vector<string> >  opts_;
-    string username_;
-    string timestamp_;
+    std::map<std::string, std::vector<std::string> >  opts_;
+    std::string username_;
+    std::string timestamp_;
 
     //---ROOT dictionary
     ClassDef(CfgManager, 1)
