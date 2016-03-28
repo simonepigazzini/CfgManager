@@ -53,10 +53,7 @@ void CfgManager::ParseConfigFile(const char* file)
         //---strip comments and unneeded whitespace
         while(buffer.size() > 0 && buffer.at(0) == ' ')
             buffer.erase(buffer.begin());
-        int comment_pos = buffer.find("#");
-        if(comment_pos != std::string::npos)
-            buffer.erase(buffer.begin()+comment_pos, buffer.end());
-        if(buffer.size() == 0)
+        if(buffer.size() == 0 || buffer.at(0) == '#')
             continue;        
 
         //---parse the current line
