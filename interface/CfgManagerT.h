@@ -26,15 +26,6 @@ template<> inline std::string CfgManager::GetOpt(std::string key, int opt)
     return opts_[key][opt];
 }   
 
-template<> inline bool CfgManager::GetOpt(std::string key, int opt)
-{
-    key = "opts."+key;
-    if(!OptExist(key))
-        return false;
-
-    return true;
-}   
-
 template<> inline std::vector<float> CfgManager::GetOpt(std::string key, int opt)
 {
     key = "opts."+key;
