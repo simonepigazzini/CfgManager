@@ -15,19 +15,24 @@ DEPS_OBJS = lib/CfgManager.o
 all: $(DEPS_OBJS) lib/LinkDef.cxx lib/libCFGMan.so lib/CfgManagerDict.so bin/test
 
 lib/%.o: src/%.cc $(DEPS)
-	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
+	@echo " CXX $<"	
+	@$ $(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
 
 lib/libCFGMan.so: lib/CfgManager.o
-	$(CXX) -shared -o $@ $< 
+	@echo " CXX $<"
+	@$ $(CXX) -shared -o $@ $< 
 
 lib/LinkDef.cxx: interface/CfgManager.h interface/CfgManagerT.h interface/LinkDef.h 
-	rootcling -f $@ -c $^
+	@$ rootcling -f $@ -c $^
+	@$ rootcling -f $@ -c $^
 
 lib/CfgManagerDict.so: lib/LinkDef.cxx $(DEPS_OBJS)
-	$(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+	@echo " CXX $<"
+	@$ $(CXX) $(CXXFLAGS) $(SOFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
 bin/%: test/%.cpp lib/libCFGMan.so lib/CfgManagerDict.so
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
+	@echo " CXX $<"
+	@$ $(CXX) $(CXXFLAGS) -o $@ $^ $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS) $(LIB)
 
 install:
 	cp lib/CfgManagerDict.so $(libdir)
