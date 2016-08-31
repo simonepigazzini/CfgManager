@@ -50,6 +50,7 @@ public:
 private:
     //---utils---
     void                    ParseSingleLine(const std::string& line, std::vector<std::string>& tokens);
+    void                    HandleForLoop(std::string& current_block, std::vector<std::vector<std::string> >& for_cycle);
     void                    HandleOption(std::string& current_block, std::vector<std::string>& tokens);
     void                    CopyBlock(std::string& current_block, std::string& block_to_copy);
     void                    Errors(std::string key, int opt=0);
