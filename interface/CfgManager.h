@@ -49,7 +49,7 @@ public:
 
 private:
     //---utils---
-    void                    ParseSingleLine(const std::string& line, std::vector<std::string>& tokens);
+    bool                    ParseSingleLine(std::string& line, std::vector<std::string>& tokens);
     void                    HandleForLoop(std::string& current_block, std::vector<std::vector<std::string> >& for_cycle);
     void                    HandleOption(std::string& current_block, std::vector<std::string>& tokens);
     void                    CopyBlock(std::string& current_block, std::string& block_to_copy);

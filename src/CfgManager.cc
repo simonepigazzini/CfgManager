@@ -14,12 +14,23 @@ bool CfgManager::OptExist(std::string key, int opt)
 }
 
 //----------Help method, parse single line------------------------------------------------
-void CfgManager::ParseSingleLine(const std::string& line, std::vector<std::string>& tokens)
+bool CfgManager::ParseSingleLine(std::string& line, std::vector<std::string>& tokens)
 {
     //---parsing utils
     size_t prev=0, pos;
     std::string delimiter=" ";
 
+    //---strip comments and unneeded whitespace
+    while(line.size() > 0 && line.at(0) == ' ')
+        line.erase(line.begin());
+    if(line.size() == 0)
+        return false;
+    if(line.at(0) == '\'')
+    {
+        delimiter="\'";
+        prev = 1;
+    }
+    
     //---line loop
     while((pos = line.find_first_of(delimiter, prev)) != std::string::npos)
     {
@@ -37,7 +48,7 @@ void CfgManager::ParseSingleLine(const std::string& line, std::vector<std::strin
     if(prev < line.length())
         tokens.push_back(line.substr(prev, std::string::npos));
 
-    return;
+    return true;
 }
 
 //----------Parse configuration file and setup the configuration--------------------------
@@ -50,15 +61,11 @@ void CfgManager::ParseConfigFile(const char* file)
     std::string current_block="opts";
     while(getline(cfgFile, buffer))
     {
-        //---strip comments and unneeded whitespace
-        while(buffer.size() > 0 && buffer.at(0) == ' ')
-            buffer.erase(buffer.begin());
-        if(buffer.size() == 0 || buffer.at(0) == '#')
-            continue;        
-
         //---parse the current line
         std::vector<std::string> tokens;
-        ParseSingleLine(buffer, tokens);
+        if(!ParseSingleLine(buffer, tokens))
+            continue;
+
         //---multiple line option
         while(tokens.back() == "\\")
         {
@@ -70,7 +77,7 @@ void CfgManager::ParseConfigFile(const char* file)
         if(tokens.at(0) == "for")
         {
             std::vector<std::vector<std::string> > for_cycle;
-            for_cycle.push_back(tokens);
+            for_cycle.push_back(tokens);            
             while(tokens.at(0) != "end")
             {
                 tokens.clear();
@@ -81,7 +88,7 @@ void CfgManager::ParseConfigFile(const char* file)
                 {
                     tokens.pop_back();
                     getline(cfgFile, buffer);
-                    ParseSingleLine(buffer, tokens);
+                    ParseSingleLine(buffer, tokens);                    
                 }
                 for_cycle.push_back(tokens);                
             }
@@ -93,7 +100,7 @@ void CfgManager::ParseConfigFile(const char* file)
             HandleOption(current_block, tokens);
     }
     cfgFile.close();
-
+    
     //---set automatic info
     char hostname[100];
     gethostname(hostname, 100);
@@ -112,8 +119,9 @@ void CfgManager::ParseConfigString(const std::string config)
 {
     std::string current_block="opts";
     //---parse the current string
+    std::string local_copy = config;
     std::vector<std::string> tokens;
-    ParseSingleLine(config, tokens);
+    ParseSingleLine(local_copy, tokens);
     HandleOption(current_block, tokens);
 
     return;
@@ -169,6 +177,10 @@ void CfgManager::HandleForLoop(std::string& current_block, std::vector<std::vect
 //---private methode called by ParseConfig public methods
 void CfgManager::HandleOption(std::string& current_block, std::vector<std::string>& tokens)
 {
+    //---skip comments
+    if(tokens.at(0).at(0) == '#')
+        return;
+
     //---Handle blocks
     if(tokens.at(0).at(0) == '<')
     {        
@@ -218,7 +230,7 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
     }
     //---option line
     else
-    {
+    {        
         std::string key=tokens.at(0);
         tokens.erase(tokens.begin());
             
@@ -263,9 +275,10 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
                 std::cout << "> CfgManager --- WARNING: undefined option // " << copy << std::endl;
         }
         //---new key
-        else 
+        else
             opts_[current_block+"."+key] = tokens;
     }
+
     return;
 }
 
