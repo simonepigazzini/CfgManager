@@ -150,7 +150,7 @@ void CfgManager::HandleForLoop(std::string& current_block, std::vector<std::vect
                 std::vector<std::string> tokens;
                 for(auto token : line)
                 {
-                    if(token.find("$"+loop_var) != std::string::npos)
+                    while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, std::to_string(i));
                     tokens.push_back(token);
                 }
@@ -165,7 +165,7 @@ void CfgManager::HandleForLoop(std::string& current_block, std::vector<std::vect
                 std::vector<std::string> tokens;
                 for(auto& token : line)
                 {
-                    if(token.find("$"+loop_var) != std::string::npos)
+                    while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, i);
                     tokens.push_back(token);
                 }
