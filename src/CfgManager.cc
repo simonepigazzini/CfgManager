@@ -141,10 +141,13 @@ void CfgManager::HandleForLoop(std::string& current_block, std::vector<std::vect
     for_cycle.pop_back();
     for_cycle.erase(for_cycle.begin());
 
-    //---rage loop [min, max)
-    if(loop_def.size() == 4)
-    {        
-        for(int i=stoi(loop_def.at(2)); i<stoi(loop_def.at(3)); ++i)
+    //---rage loop [min, max) optional increment value
+    if(loop_def.size() >= 4)
+    {
+        int increment = 1;
+        if(loop_def.size() == 5)
+            increment = stoi(loop_def.at(4));
+        for(int i=stoi(loop_def.at(2)); i<stoi(loop_def.at(3)); i=i+increment)
             for(auto line : for_cycle)
             {
                 std::vector<std::string> tokens;
