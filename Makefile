@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++1y -fPIC -D_GLIBCXX_USE_CXX11_ABI=0
+CXXFLAGS = -std=c++1y -fPIC
 SOFLAGS = -shared -O3
 INCLUDE = -I"./" 
 LIB = -L"./lib/"
@@ -16,7 +16,7 @@ all: $(DEPS_OBJS) lib/libCFGMan.cxx lib/libCFGMan.so bin/test
 
 lib/%.o: src/%.cc $(DEPS)
 	@echo " CXX $<"	
-	@$ $(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_LIB) $(ROOT_FLAGS)
+	@$ $(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) $(ROOT_FLAGS)
 
 lib/libCFGMan.cxx: interface/CfgManager.h interface/CfgManagerT.h interface/LinkDef.h 
 	@$ rootcling -f $@ -rml libCFGMan.so -rmf lib/libCFGMan.rootmap $^
