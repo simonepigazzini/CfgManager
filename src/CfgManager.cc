@@ -1,10 +1,10 @@
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "ExternalTools/CfgManager/interface/CfgManager.h"
+#include "ExternalTools/CfgManager/interface/CfgManagerT.h"
 
 //**********utils*************************************************************************
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(std::string key, int opt)
+bool CfgManager::OptExist(std::string key, unsigned int opt)
 {
     for(auto& iopt : opts_)
         if(iopt.first == "opts."+key && iopt.second.size()>opt)
@@ -319,11 +319,11 @@ void CfgManager::Print(Option_t* option) const
     std::string argkey = option;
     //---banner
     std::string banner = "configuration was created by "+username_+" on "+timestamp_;
-    for(int i=0; i<banner.size(); ++i)
+    for(unsigned int i=0; i<banner.size(); ++i)
         std::cout << "=";
     std::cout << std::endl;
     std::cout << banner << std::endl;
-    for(int i=0; i<banner.size(); ++i)
+    for(unsigned int i=0; i<banner.size(); ++i)
         std::cout << "=";
     std::cout << std::endl;
     
@@ -353,7 +353,7 @@ void CfgManager::Print(Option_t* option) const
 }
 
 //----------Internal error check----------------------------------------------------------
-void CfgManager::Errors(std::string key, int opt)
+void CfgManager::Errors(std::string key, unsigned int opt)
 {
     if(opts_.count(key) == 0)
     {

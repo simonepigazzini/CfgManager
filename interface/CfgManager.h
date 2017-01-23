@@ -38,7 +38,7 @@ public:
         {opts_["opts."+key]=v_opt;};
 
     //---utils
-    bool                   OptExist(std::string key, int opt=0);
+    bool                   OptExist(std::string key, unsigned int opt=0);
     inline void            ParseConfigFile(const std::string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
     void                   ParseConfigString(const std::string config);
@@ -53,7 +53,7 @@ private:
     void                    HandleForLoop(std::string& current_block, std::vector<std::vector<std::string> >& for_cycle);
     void                    HandleOption(std::string& current_block, std::vector<std::string>& tokens);
     void                    CopyBlock(std::string& current_block, std::string& block_to_copy);
-    void                    Errors(std::string key, int opt=0);
+    void                    Errors(std::string key, unsigned int opt=0);
 
 private:
     std::map<std::string, std::vector<std::string> >  opts_;
