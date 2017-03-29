@@ -60,7 +60,7 @@ private:
     std::string username_;
     std::string timestamp_;
 
-    //---ROOT dictionary
+    //---ROOT dictionary---
     ClassDef(CfgManager, 1)
 };
 
