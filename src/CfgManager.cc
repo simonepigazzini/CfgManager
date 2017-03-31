@@ -7,7 +7,7 @@
 bool CfgManager::OptExist(std::string key, unsigned int opt)
 {
     for(auto& iopt : opts_)
-        if(iopt.first == "opts."+key && iopt.second.size()>opt)
+        if(iopt.first == "opts."+key && int(iopt.second.size())>opt)
             return true;
 
     return false;
@@ -215,6 +215,7 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
             }
             tokens.at(0).erase(--tokens.at(0).end());            
             current_block += "."+tokens.at(0);
+            opts_[current_block];
             //---copy from other blocks
             if(copy_blocks)
             {
@@ -289,17 +290,19 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
 //---already defined option are overridden
 void CfgManager::CopyBlock(std::string& current_block, std::string& block_to_copy)
 {
-    bool found_any=false;
+    //---search for the correct block name
+    auto block_to_copy_full = Lookup(current_block, block_to_copy);
+    bool found_any=false;    
     //---copy block entries
     for(auto& opt : opts_)
     {
         std::string key = opt.first;
-        size_t pos = key.find("."+block_to_copy+".");
+        auto pos = key.find("."+block_to_copy_full+".");
         if(pos != std::string::npos)
         {
             std::string new_key = key;
             std::vector<std::string>& opts = opt.second;
-            new_key.replace(pos+1, block_to_copy.size(), current_block.substr(5));
+            new_key.replace(pos+1, block_to_copy_full.size(), current_block.substr(5));
             opts_[new_key] = opts;
 
             found_any=true;
@@ -314,18 +317,18 @@ void CfgManager::CopyBlock(std::string& current_block, std::string& block_to_cop
 
 //----------Print formatted version of the cfg--------------------------------------------
 //---option is the key to be print: default value meas "all keys"
-void CfgManager::Print(Option_t* option) const
+void CfgManager::Print(std::ostream& out, Option_t* option) const
 {
     std::string argkey = option;
     //---banner
     std::string banner = "configuration was created by "+username_+" on "+timestamp_;
-    for(unsigned int i=0; i<banner.size(); ++i)
-        std::cout << "=";
-    std::cout << std::endl;
-    std::cout << banner << std::endl;
-    for(unsigned int i=0; i<banner.size(); ++i)
-        std::cout << "=";
-    std::cout << std::endl;
+    for(int i=0; i<banner.size(); ++i)
+        out << "=";
+    out << std::endl;
+    out << banner << std::endl;
+    for(int i=0; i<banner.size(); ++i)
+        out << "=";
+    out << std::endl;
     
     //---options
     std::string prev_block="";
@@ -337,19 +340,49 @@ void CfgManager::Print(Option_t* option) const
             if(current_block != prev_block)
             {
                 if(prev_block != "")
-                    std::cout << "+----------" << std::endl;
-                std::cout << current_block << ":" << std::endl;
+                    out << "+----------" << std::endl;
+                out << current_block << ":" << std::endl;
                 prev_block = current_block;
             }
-            std::cout << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
-            for(auto& opt : key.second)
-                std::cout << opt << ", " ;
-            std::cout << std::endl;
+            if(key.second.size())
+            {
+                out << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
+                for(auto& opt : key.second)
+                    out << opt << ", " ;
+                out << std::endl;
+            }
         }
     }
-    std::cout << "+----------" << std::endl;
+    out << "+----------" << std::endl;
 
     return;
+}
+
+//----------ROOT-style Print function-----------------------------------------------------
+void CfgManager::Print(Option_t* option) const
+{
+    Print(std::cout, option);
+
+    return;
+}
+
+//----------Lookup for full option/block name---------------------------------------------
+//---search for option/block in the options map:
+//---1) first for an exact match
+//---2) otherwise for the first match going backwards from the current block
+std::string CfgManager::Lookup(std::string& current_block, std::string& token)
+{
+    if(OptExist(token, -1))
+        return token;
+    else if(current_block.find('.') != std::string::npos)
+    {
+        auto prev_block = current_block.substr(0, current_block.find_last_of('.'));
+        auto try_token = prev_block.substr(5)+"."+token;
+        std::cout << prev_block << " " << try_token << std::endl;
+        return Lookup(prev_block, try_token);        
+    }
+    else
+        return std::string("");
 }
 
 //----------Internal error check----------------------------------------------------------
@@ -373,14 +406,7 @@ void CfgManager::Errors(std::string key, unsigned int opt)
 
 std::ostream& operator<<(std::ostream& out, const CfgManager& obj)
 {
-    //---banner
-    out << "configuration: " << std::endl;
-    //---options
-    for(auto& key : obj.opts_)
-    {
-        out << key.first.substr(5) << ":" << std::endl;
-        for(auto& opt : key.second)
-            out << "\t" << opt << std::endl;
-    }
+    obj.Print(out);
+    
     return out;
 }
