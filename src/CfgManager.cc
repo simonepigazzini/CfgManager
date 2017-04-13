@@ -244,9 +244,11 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
             key = key.substr(0, key.size()-2);
             for(auto& token : tokens)
             {
-                if(OptExist(token))
+                auto token_full = Lookup(current_block, token);
+                std::cout << token << " " << token_full << std::endl;
+                if(OptExist(token_full))
                 {
-                    auto extend_opt = GetOpt<std::vector<std::string> >(token);
+                    auto extend_opt = GetOpt<std::vector<std::string> >(token_full);
                     opts_[current_block+"."+key].insert(opts_[current_block+"."+key].end(),
                                                         extend_opt.begin(),
                                                         extend_opt.end());
@@ -259,21 +261,23 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
         else if(key.substr(key.size()-1) == "=" && tokens.size() > 0)
         {
             auto copy = tokens.at(0);
-            key = key.substr(0, key.size()-1);
-            //---copy only selected option field
+            int pos = -1;
             if(copy.find("[") != std::string::npos)
             {
-                if(OptExist(copy.substr(0, copy.find("[")), stoi(copy.substr(copy.find("[")+1, copy.find("]")-copy.find("[")-1))))
-                {
-                    int pos = stoi(copy.substr(copy.find("[")+1, copy.find("]")-copy.find("[")-1));
-                    copy = copy.substr(0, copy.find("["));
-                    
-                    opts_[current_block+"."+key].push_back(GetOpt<std::string>(copy, pos));
-                }
+                pos = stoi(copy.substr(copy.find("[")+1, copy.find("]")-copy.find("[")-1));
+                copy = copy.substr(0, copy.find("["));
             }
-            //--copy entire option
-            else if(OptExist(copy))
-                opts_[current_block+"."+key] = GetOpt<std::vector<std::string> >(copy);
+            copy = Lookup(current_block, copy);
+            key = key.substr(0, key.size()-1);
+            if(OptExist(copy))
+            {
+                //---copy only selected option field
+                if(pos != -1)
+                    opts_[current_block+"."+key].push_back(GetOpt<std::string>(copy, pos));            
+                //--copy entire option
+                else 
+                    opts_[current_block+"."+key] = GetOpt<std::vector<std::string> >(copy);
+            }
             //---throw error
             else
                 std::cout << "> CfgManager --- WARNING: undefined option // " << copy << std::endl;
@@ -374,11 +378,12 @@ std::string CfgManager::Lookup(std::string& current_block, std::string& token)
 {
     if(OptExist(token, -1))
         return token;
+    else if(current_block != "opts" && OptExist(current_block.substr(5)+"."+token, -1))
+        return current_block.substr(5)+"."+token;
     else if(current_block.find('.') != std::string::npos)
     {
         auto prev_block = current_block.substr(0, current_block.find_last_of('.'));
-        auto try_token = prev_block.substr(5)+"."+token;
-        std::cout << prev_block << " " << try_token << std::endl;
+        auto try_token = prev_block == "opts" ? token : prev_block.substr(5)+"."+token;
         return Lookup(prev_block, try_token);        
     }
     else
