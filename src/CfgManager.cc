@@ -4,7 +4,7 @@
 //**********utils*************************************************************************
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(std::string key, unsigned int opt)
+bool CfgManager::OptExist(std::string key, int opt)
 {
     for(auto& iopt : opts_)
         if(iopt.first == "opts."+key && int(iopt.second.size())>opt)
@@ -322,11 +322,11 @@ void CfgManager::Print(std::ostream& out, Option_t* option) const
     std::string argkey = option;
     //---banner
     std::string banner = "configuration was created by "+username_+" on "+timestamp_;
-    for(int i=0; i<banner.size(); ++i)
+    for(unsigned int i=0; i<banner.size(); ++i)
         out << "=";
     out << std::endl;
     out << banner << std::endl;
-    for(int i=0; i<banner.size(); ++i)
+    for(unsigned int i=0; i<banner.size(); ++i)
         out << "=";
     out << std::endl;
     
@@ -386,14 +386,14 @@ std::string CfgManager::Lookup(std::string& current_block, std::string& token)
 }
 
 //----------Internal error check----------------------------------------------------------
-void CfgManager::Errors(std::string key, unsigned int opt)
+void CfgManager::Errors(std::string key, int opt)
 {
     if(opts_.count(key) == 0)
     {
         std::cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << std::endl;
         exit(-1);
     }
-    if(opt >= opts_[key].size())
+    if(opt >= int(opts_[key].size()))
     {
         std::cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
              << opt << "values (" << opts_[key].size() << ")" << std::endl;

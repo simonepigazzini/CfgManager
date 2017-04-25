@@ -38,7 +38,7 @@ public:
         {opts_["opts."+key]=v_opt;};
 
     //---utils
-    bool                   OptExist(std::string key, unsigned int opt=0);
+    bool                   OptExist(std::string key, int opt=0);
     inline void            ParseConfigFile(const std::string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
     void                   ParseConfigString(const std::string config);
