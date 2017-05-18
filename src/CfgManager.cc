@@ -165,8 +165,8 @@ void CfgManager::HandleForLoop(std::string& current_block, std::vector<std::vect
         for(auto& i : GetOpt<std::vector<std::string> >(loop_def.at(2)))
             for(auto& line : for_cycle)
             {
-                std::vector<std::string> tokens;
-                for(auto& token : line)
+                std::vector<std::string> tokens;                
+                for(auto token : line)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, i);
@@ -245,7 +245,6 @@ void CfgManager::HandleOption(std::string& current_block, std::vector<std::strin
             for(auto& token : tokens)
             {
                 auto token_full = Lookup(current_block, token);
-                std::cout << token << " " << token_full << std::endl;
                 if(OptExist(token_full))
                 {
                     auto extend_opt = GetOpt<std::vector<std::string> >(token_full);
