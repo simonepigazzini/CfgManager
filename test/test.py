@@ -10,7 +10,7 @@ from ROOT import std
 ROOT.gROOT.SetBatch(True)
 sys.argv = oldargv
 
-ROOT.gSystem.Load("lib/CfgManagerDict.so")
+ROOT.gSystem.Load("lib/libCFGMan.so")
 
 cfg = ROOT.CfgManager("test/test.cfg")
 cfg.ParseConfigString("test2.addedFromString 'new option from string'")
