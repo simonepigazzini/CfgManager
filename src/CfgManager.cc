@@ -276,7 +276,6 @@ void CfgManager::HandleOption(std::string& current_block, option_t& tokens)
             for(auto& token : tokens)
             {
                 auto token_full = Lookup(current_block, token);
-                std::cout << token << " " << token_full << std::endl;
                 if(OptExist(token_full))
                 {
                     auto extend_opt = GetOpt<option_t >(token_full);
