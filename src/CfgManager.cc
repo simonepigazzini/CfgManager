@@ -16,15 +16,33 @@ bool CfgManager::OptExist(std::string key, int opt)
 //----------Help method, parse single line------------------------------------------------
 bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens)
 {
-    //---parsing utils
-    size_t prev=0, pos;
-    std::string delimiter=" ";
-
     //---strip commented lines and unneeded whitespace
     while(line.size() > 0 && line.at(0) == ' ')
         line.erase(line.begin());
     if(line.size() == 0 || line.at(0) == '#')
         return false;
+    
+    //---evaluate options before parsing the line
+    //   if $option is found and exist its value is inserted in place of $option
+    std::regex option_pattern("\\$\\w+(\\.[\\w+)*(\\[[0-9]+\\])?");
+    auto matches_begin = std::sregex_iterator(line.begin(), line.end(), option_pattern);
+    auto matches_end = std::sregex_iterator();
+    for(std::sregex_iterator it = matches_begin; it != matches_end; ++it)
+    {
+        auto opt_str = it->str();
+        auto brk_pos = opt_str.find("[");
+        int opt_idx = 0;
+        if(brk_pos != std::string::npos)
+            opt_idx = stoi(opt_str.substr(brk_pos+1, opt_str.size()-brk_pos-2));
+        else
+            brk_pos = opt_str.size()-1;
+        if(OptExist(opt_str.substr(1, brk_pos-1), opt_idx))
+            line.replace(line.find(opt_str), opt_str.size(), GetOpt<std::string>(opt_str.substr(1, brk_pos-1), opt_idx));
+    }
+
+    //---parsing utils
+    size_t prev=0, pos;
+    std::string delimiter=" ";
     if(line.at(0) == '\'')
     {
         delimiter="\'";
