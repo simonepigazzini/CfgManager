@@ -1,7 +1,59 @@
 #include "ExternalTools/CfgManager/interface/CfgManager.h"
 #include "ExternalTools/CfgManager/interface/CfgManagerT.h"
 
+//**********getters***********************************************************************
+//----------GetSubCfg---------------------------------------------------------------------
+//---Get subset of the current config file
+//---blocks specifies which blocks are copied to the subset.
+
+//---one block
+CfgManager CfgManager::GetSubCfg(std::string block)
+{
+    return GetSubCfg(std::vector<std::string>({block}));
+}
+
+//---many blocks
+CfgManager CfgManager::GetSubCfg(std::vector<std::string> blocks)
+{
+    //---loop over the blocks storing them in a separate map
+    std::map<std::string, option_t >  selected_opts;
+    for(auto& block: blocks)
+    {
+        if(opts_.count("opts."+block))
+        {
+            for(auto& iopt : opts_)
+            {
+                auto pos = iopt.first.find("opts."+block+".");
+                if(pos == 0)
+                    selected_opts[iopt.first]= iopt.second;
+            }
+        }
+        else
+            std::cout << "> CfgManager::GeuSubCfg --- WARNING: undefined block -> " << block << std::endl;
+    }
+    
+    //---return new CfgMaanager object
+    return CfgManager(selected_opts);
+}
+
 //**********utils*************************************************************************
+
+//----------Set creatio info--------------------------------------------------------------
+//---Called by the constructors
+void CfgManager::SetCreationInfo()
+{
+    //---set automatic info
+    char hostname[100];
+    gethostname(hostname, 100);
+    username_ = std::string(getpwuid(getuid())->pw_name)+"@"+hostname;
+    time_t rawtime;
+    time(&rawtime);
+    struct tm* t = localtime(&rawtime);
+    timestamp_ = std::to_string(t->tm_mday)+"/"+std::to_string(t->tm_mon)+"/"+std::to_string(t->tm_year+1900)+"  "+
+        std::to_string(t->tm_hour)+":"+std::to_string(t->tm_min)+":"+std::to_string(t->tm_sec);
+
+    return;
+}
 
 //----------Check if the key is in cfg----------------------------------------------------
 bool CfgManager::OptExist(std::string key, int opt)
@@ -79,7 +131,7 @@ voption_t CfgManager::ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle
         tokens.clear();
         if(!getline(cfg_file, buffer))
         {
-            std::cout << "> CfgManager --- ERROR: runaway for loop, missing end marker. // " << std::endl;
+            std::cout << "> CfgManager --- ERROR: runaway for loop, missing end marker. -> " << std::endl;
             exit(-1);
         }
         if(ParseSingleLine(buffer, tokens))
@@ -149,16 +201,6 @@ void CfgManager::ParseConfigFile(const char* file)
     }
     cfg_file.close();
     
-    //---set automatic info
-    char hostname[100];
-    gethostname(hostname, 100);
-    username_ = std::string(getpwuid(getuid())->pw_name)+"@"+hostname;
-    time_t rawtime;
-    time(&rawtime);
-    struct tm* t = localtime(&rawtime);
-    timestamp_ = std::to_string(t->tm_mday)+"/"+std::to_string(t->tm_mon)+"/"+std::to_string(t->tm_year+1900)+"  "+
-        std::to_string(t->tm_hour)+":"+std::to_string(t->tm_min)+":"+std::to_string(t->tm_sec);
-
     return;
 }
 
@@ -181,7 +223,7 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
     //---get for-loop range
     if(for_cycle.at(0).size() < 3)
     {
-        std::cout << "> CfgManager --- ERROR: for loop is undefined, provide at least 3 arguments. // " << std::endl;
+        std::cout << "> CfgManager --- ERROR: for loop is undefined, provide at least 3 arguments. -> " << std::endl;
         exit(-1);
     }        
     auto loop_def = for_cycle.at(0);
@@ -246,7 +288,7 @@ void CfgManager::HandleOption(std::string& current_block, option_t& tokens)
                 current_block.erase(last_dot);
             else
             {
-                std::cout << "> CfgManager --- ERROR: wrong closing block // " << tokens.at(0) << std::endl;
+                std::cout << "> CfgManager --- ERROR: wrong closing block -> " << tokens.at(0) << std::endl;
                 exit(-1);
             }
         }
@@ -326,9 +368,9 @@ void CfgManager::HandleOption(std::string& current_block, option_t& tokens)
                 else 
                     opts_[current_block+"."+key] = GetOpt<option_t >(copy);
             }
-            //---throw error
+            //---throw warning and ignore token
             else
-                std::cout << "> CfgManager --- WARNING: undefined option // " << copy << std::endl;
+                std::cout << "> CfgManager --- WARNING: undefined option -> " << copy << std::endl;
         }
         //---new key
         else
@@ -422,8 +464,10 @@ void CfgManager::Print(Option_t* option) const
 //---search for option/block in the options map:
 //---1) first for an exact match
 //---2) otherwise for the first match going backwards from the current block
-std::string CfgManager::Lookup(std::string& current_block, std::string& token)
+std::string CfgManager::Lookup(std::string& current_block, std::string& token, std::string origin_token)
 {
+    if(origin_token.size() == 0)
+        origin_token = token;
     if(OptExist(token, -1))
         return token;
     else if(current_block != "opts" && OptExist(current_block.substr(5)+"."+token, -1))
@@ -432,10 +476,10 @@ std::string CfgManager::Lookup(std::string& current_block, std::string& token)
     {
         auto prev_block = current_block.substr(0, current_block.find_last_of('.'));
         auto try_token = prev_block == "opts" ? token : prev_block.substr(5)+"."+token;
-        return Lookup(prev_block, try_token);        
+        return Lookup(prev_block, try_token, origin_token);        
     }
     else
-        return std::string("");
+        return origin_token;
 }
 
 //----------Internal error check----------------------------------------------------------

@@ -28,13 +28,16 @@ class CfgManager: public TObject
 public:
     //---ctors---
     CfgManager() {};
-    CfgManager(std::map<std::string, option_t >* defaultCfg) {opts_=*defaultCfg;};
-    CfgManager(const char* file) {ParseConfigFile(file);};
+    CfgManager(std::map<std::string, option_t >* defaultCfg) {opts_=*defaultCfg; SetCreationInfo();};
+    CfgManager(std::map<std::string, option_t >& defaultCfg) {opts_=defaultCfg; SetCreationInfo();};    
+    CfgManager(const char* file) {ParseConfigFile(file); SetCreationInfo();};
     //---dtor---
     ~CfgManager() {};
 
     //---getters---
     template<typename T=std::string> T GetOpt(std::string key, int opt=0);
+    CfgManager                         GetSubCfg(std::string block);    
+    CfgManager                         GetSubCfg(std::vector<std::string> blocks);
                     
     //---setters---
     inline void            SetOpt(const char* key, option_t& v_opt)
@@ -55,12 +58,13 @@ public:
 
 private:
     //---utils---
+    void                    SetCreationInfo();
     bool                    ParseSingleLine(std::string& line, option_t& tokens);
     voption_t               ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle);
     voption_t               HandleForLoop(voption_t& for_cycle);
     void                    HandleOption(std::string& current_block, option_t& tokens);
     void                    CopyBlock(std::string& current_block, std::string& block_to_copy);
-    std::string             Lookup(std::string& current_block, std::string& token);
+    std::string             Lookup(std::string& current_block, std::string& token, std::string origin_token="");
     void                    Errors(std::string key, int opt=0);
 
 private:
