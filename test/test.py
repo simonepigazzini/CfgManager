@@ -27,3 +27,5 @@ print(cfg.GetOpt("test.stringa", 1))
 for opt in cfg.GetOpt(std.vector(std.string))("test.newline"):
     print(opt)
 
+sub_cfg = cfg.GetSubCfg("test3.subtest1")
+sub_cfg.Print()
