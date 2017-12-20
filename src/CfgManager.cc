@@ -9,7 +9,8 @@
 //---one block
 CfgManager CfgManager::GetSubCfg(std::string block)
 {
-    return GetSubCfg(std::vector<std::string>({block}));
+    std::vector<std::string> vblock = {block};
+    return GetSubCfg(vblock);
 }
 
 //---many blocks
