@@ -35,9 +35,9 @@ public:
     ~CfgManager() {};
 
     //---getters---
-    template<typename T=std::string> T GetOpt(std::string key, int opt=0);
-    CfgManager                         GetSubCfg(std::string block);    
-    CfgManager                         GetSubCfg(std::vector<std::string> blocks);
+    template<typename T=std::string> T GetOpt(std::string key, int opt=0) const;
+    CfgManager                         GetSubCfg(std::string block) const;    
+    CfgManager                         GetSubCfg(std::vector<std::string> blocks) const;
                     
     //---setters---
     inline void            SetOpt(const char* key, option_t& v_opt)
@@ -46,16 +46,17 @@ public:
         {opts_["opts."+key]=v_opt;};
 
     //---utils
-    bool                   OptExist(std::string key, int opt=0);
+    bool                   OptExist(std::string key, int opt=0) const;
     inline void            ParseConfigFile(const std::string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
     void                   ParseConfigString(const std::string config);
     virtual void           Print(std::ostream& out, Option_t* option="") const;
     virtual void           Print(Option_t* option="") const;    
+    bool                   CompareOption(const CfgManager& comp, std::string key) const;
     
     //---operators---
     friend std::ostream& operator<<(std::ostream& out, const CfgManager& obj);
-
+    
 private:
     //---utils---
     void                    SetCreationInfo();
@@ -65,7 +66,7 @@ private:
     void                    HandleOption(std::string& current_block, option_t& tokens);
     void                    CopyBlock(std::string& current_block, std::string& block_to_copy);
     std::string             Lookup(std::string& current_block, std::string& token, std::string origin_token="");
-    void                    Errors(std::string key, int opt=0);
+    void                    Errors(std::string key, int opt=0) const;
 
 private:
     std::map<std::string, option_t >  opts_;

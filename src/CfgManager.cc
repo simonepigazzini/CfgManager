@@ -7,13 +7,13 @@
 //---blocks specifies which blocks are copied to the subset.
 
 //---one block
-CfgManager CfgManager::GetSubCfg(std::string block)
+CfgManager CfgManager::GetSubCfg(std::string block) const
 {
     return GetSubCfg(std::vector<std::string>({block}));
 }
 
 //---many blocks
-CfgManager CfgManager::GetSubCfg(std::vector<std::string> blocks)
+CfgManager CfgManager::GetSubCfg(std::vector<std::string> blocks) const
 {
     //---loop over the blocks storing them in a separate map
     std::map<std::string, option_t >  selected_opts;
@@ -56,7 +56,7 @@ void CfgManager::SetCreationInfo()
 }
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(std::string key, int opt)
+bool CfgManager::OptExist(std::string key, int opt) const
 {
     for(auto& iopt : opts_)
         if(iopt.first == "opts."+key && int(iopt.second.size())>opt)
@@ -271,6 +271,15 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
     return parsed_loop;
 }
 
+//----compare specified option <key> of this cfg with <comp>
+bool CfgManager::CompareOption(const CfgManager& comp, const std::string key) const
+{
+    //---comparison is true if option exist in both cfgs and is identical or
+    //   if it doens't exist in neither of the two
+    return (OptExist(key, -1) && comp.OptExist(key, -1) && GetOpt<option_t >(key) == comp.GetOpt<option_t >(key)) ||
+        (!OptExist(key, -1) && !comp.OptExist(key, -1));
+}
+
 //----------Handle single option: key and parameters--------------------------------------
 //---private methode called by ParseConfig public methods
 void CfgManager::HandleOption(std::string& current_block, option_t& tokens)
@@ -483,17 +492,17 @@ std::string CfgManager::Lookup(std::string& current_block, std::string& token, s
 }
 
 //----------Internal error check----------------------------------------------------------
-void CfgManager::Errors(std::string key, int opt)
+void CfgManager::Errors(std::string key, int opt) const
 {
     if(opts_.count(key) == 0)
     {
         std::cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << std::endl;
         exit(-1);
     }
-    if(opt >= opts_[key].size())
+    if(opt >= opts_.at(key).size())
     {
         std::cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
-             << opt << "values (" << opts_[key].size() << ")" << std::endl;
+             << opt << "values (" << opts_.at(key).size() << ")" << std::endl;
         exit(-1);
     }
     return;
