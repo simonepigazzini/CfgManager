@@ -44,6 +44,8 @@ public:
         {opts_["opts."+std::string(key)]=v_opt;};
     inline void            SetOpt(std::string& key, option_t& v_opt)
         {opts_["opts."+key]=v_opt;};
+    inline void            SetOpt(std::string key, option_t& v_opt)
+        {opts_["opts."+key]=v_opt;};
 
     //---utils
     bool                   OptExist(std::string key, int opt=0) const;
