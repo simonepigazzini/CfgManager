@@ -53,7 +53,8 @@ public:
     void                   ParseConfigFile(const char* file);
     void                   ParseConfigString(const std::string config);
     virtual void           Print(std::ostream& out, Option_t* option="") const;
-    virtual void           Print(Option_t* option="") const;    
+    virtual void           Print(Option_t* option="") const;
+    void                   WriteToFile(std::string filename="dump.cfg", bool overwrite=false) const;
     bool                   CompareOption(const CfgManager& comp, std::string key) const;
     
     //---operators---

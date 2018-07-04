@@ -469,6 +469,35 @@ void CfgManager::Print(Option_t* option) const
     return;
 }
 
+//----------Write cfg to text file--------------------------------------------------------
+void CfgManager::WriteToFile(std::string filename, bool overwrite) const
+{
+    std::ifstream checkfile(filename);
+    if(checkfile && !overwrite)
+    {
+        std::cout << "> CfgManager::WriteToFile(std::string filename, bool overwrite) --- WARNING: file " << filename
+                  << " already exists:  specify different filename or set overwrite to true."
+                  << std::endl;
+        return;
+    }
+
+    std::ofstream dump(filename);
+    if(dump.is_open())
+    {
+        //---IMPROVEME
+        for(auto& key : opts_)
+        {
+            if(key.second.size())
+            {
+                dump << key.first.substr(key.first.find_first_of(".")+1) << " ";
+                for(auto& opt : key.second)
+                    dump << "'" << opt << "' ";
+                dump << std::endl;
+            }
+        }
+    }
+}
+
 //----------Lookup for full option/block name---------------------------------------------
 //---search for option/block in the options map:
 //---1) first for an exact match
