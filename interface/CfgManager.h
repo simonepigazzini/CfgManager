@@ -63,7 +63,8 @@ public:
 private:
     //---utils---
     void                    SetCreationInfo();
-    bool                    ParseSingleLine(std::string& line, option_t& tokens);
+    bool                    ReplaceOptions(std::string& line);
+    bool                    ParseSingleLine(std::string& line, option_t& tokens, bool replace_options=true);
     voption_t               ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle);
     voption_t               HandleForLoop(voption_t& for_cycle);
     void                    HandleOption(std::string& current_block, option_t& tokens);

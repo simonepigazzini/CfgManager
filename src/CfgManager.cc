@@ -65,17 +65,10 @@ bool CfgManager::OptExist(std::string key, int opt) const
     return false;
 }
 
-//----------Help method, parse single line------------------------------------------------
-bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens)
+//----------Replace $option[n] with the corresponding value-------------------------------
+bool CfgManager::ReplaceOptions(std::string& line)
 {
-    //---strip commented lines and unneeded whitespace
-    while(line.size() > 0 && line.at(0) == ' ')
-        line.erase(line.begin());
-    if(line.size() == 0 || line.at(0) == '#')
-        return false;
-    
-    //---evaluate options before parsing the line
-    //   if $option is found and exist its value is inserted in place of $option
+    bool replaced=false; 
     std::regex option_pattern("\\$\\w+(\\.[\\w+)*(\\[[0-9]+\\])?");
     auto matches_begin = std::sregex_iterator(line.begin(), line.end(), option_pattern);
     auto matches_end = std::sregex_iterator();
@@ -89,9 +82,29 @@ bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens)
         else
             brk_pos = opt_str.size()-1;
         if(OptExist(opt_str.substr(1, brk_pos-1), opt_idx))
+        {
             line.replace(line.find(opt_str), opt_str.size(), GetOpt<std::string>(opt_str.substr(1, brk_pos-1), opt_idx));
+            replaced = true;
+        }
     }
 
+    return replaced;
+}
+
+//----------Help method, parse single line------------------------------------------------
+bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens, bool replace_options)
+{
+    //---strip commented lines and unneeded whitespace
+    while(line.size() > 0 && line.at(0) == ' ')
+        line.erase(line.begin());
+    if(line.size() == 0 || line.at(0) == '#')
+        return false;
+    
+    //---evaluate options before parsing the line
+    //   if $option is found and exist its value is inserted in place of $option
+    if(replace_options)
+        ReplaceOptions(line);
+ 
     //---parsing utils
     size_t prev=0, pos;
     std::string delimiter=" ";
@@ -134,7 +147,7 @@ voption_t CfgManager::ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle
             std::cout << "> CfgManager --- ERROR: runaway for loop, missing end marker. -> " << std::endl;
             exit(-1);
         }
-        if(ParseSingleLine(buffer, tokens))
+        if(ParseSingleLine(buffer, tokens, false))
         {
             //---Nested for loop (recursive)
             if(tokens.at(0) == "for")
@@ -152,7 +165,7 @@ voption_t CfgManager::ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle
                 {
                     tokens.pop_back();
                     getline(cfg_file, buffer);
-                    ParseSingleLine(buffer, tokens);                    
+                    ParseSingleLine(buffer, tokens, false);                    
                 }
                 for_cycle.push_back(tokens);
             }
@@ -248,6 +261,7 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, std::to_string(i));
+                    ReplaceOptions(token);
                     tokens.push_back(token);
                 }
                 parsed_loop.push_back(tokens);
@@ -263,6 +277,7 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, i);
+                    ReplaceOptions(token);
                     tokens.push_back(token);
                 }
                 parsed_loop.push_back(tokens);
