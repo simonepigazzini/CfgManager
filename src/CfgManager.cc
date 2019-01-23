@@ -7,14 +7,13 @@
 //---blocks specifies which blocks are copied to the subset.
 
 //---one block
-CfgManager CfgManager::GetSubCfg(std::string block)
+CfgManager CfgManager::GetSubCfg(std::string block) const
 {
-    std::vector<std::string> vblock = {block};
-    return GetSubCfg(vblock);
+    return GetSubCfg(std::vector<std::string>({block}));
 }
 
 //---many blocks
-CfgManager CfgManager::GetSubCfg(std::vector<std::string> blocks)
+CfgManager CfgManager::GetSubCfg(std::vector<std::string> blocks) const
 {
     //---loop over the blocks storing them in a separate map
     std::map<std::string, option_t >  selected_opts;
@@ -57,7 +56,7 @@ void CfgManager::SetCreationInfo()
 }
 
 //----------Check if the key is in cfg----------------------------------------------------
-bool CfgManager::OptExist(std::string key, int opt)
+bool CfgManager::OptExist(std::string key, int opt) const
 {
     for(auto& iopt : opts_)
         if(iopt.first == "opts."+key && int(iopt.second.size())>opt)
@@ -66,17 +65,10 @@ bool CfgManager::OptExist(std::string key, int opt)
     return false;
 }
 
-//----------Help method, parse single line------------------------------------------------
-bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens)
+//----------Replace $option[n] with the corresponding value-------------------------------
+bool CfgManager::ReplaceOptions(std::string& line)
 {
-    //---strip commented lines and unneeded whitespace
-    while(line.size() > 0 && line.at(0) == ' ')
-        line.erase(line.begin());
-    if(line.size() == 0 || line.at(0) == '#')
-        return false;
-    
-    //---evaluate options before parsing the line
-    //   if $option is found and exist its value is inserted in place of $option
+    bool replaced=false; 
     std::regex option_pattern("\\$\\w+(\\.[\\w+)*(\\[[0-9]+\\])?");
     auto matches_begin = std::sregex_iterator(line.begin(), line.end(), option_pattern);
     auto matches_end = std::sregex_iterator();
@@ -90,9 +82,29 @@ bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens)
         else
             brk_pos = opt_str.size()-1;
         if(OptExist(opt_str.substr(1, brk_pos-1), opt_idx))
+        {
             line.replace(line.find(opt_str), opt_str.size(), GetOpt<std::string>(opt_str.substr(1, brk_pos-1), opt_idx));
+            replaced = true;
+        }
     }
 
+    return replaced;
+}
+
+//----------Help method, parse single line------------------------------------------------
+bool CfgManager::ParseSingleLine(std::string& line, option_t& tokens, bool replace_options)
+{
+    //---strip commented lines and unneeded whitespace
+    while(line.size() > 0 && line.at(0) == ' ')
+        line.erase(line.begin());
+    if(line.size() == 0 || line.at(0) == '#')
+        return false;
+    
+    //---evaluate options before parsing the line
+    //   if $option is found and exist its value is inserted in place of $option
+    if(replace_options)
+        ReplaceOptions(line);
+ 
     //---parsing utils
     size_t prev=0, pos;
     std::string delimiter=" ";
@@ -135,7 +147,7 @@ voption_t CfgManager::ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle
             std::cout << "> CfgManager --- ERROR: runaway for loop, missing end marker. -> " << std::endl;
             exit(-1);
         }
-        if(ParseSingleLine(buffer, tokens))
+        if(ParseSingleLine(buffer, tokens, false))
         {
             //---Nested for loop (recursive)
             if(tokens.at(0) == "for")
@@ -153,7 +165,7 @@ voption_t CfgManager::ParseForLoop(std::ifstream& cfg_file, voption_t& for_cycle
                 {
                     tokens.pop_back();
                     getline(cfg_file, buffer);
-                    ParseSingleLine(buffer, tokens);                    
+                    ParseSingleLine(buffer, tokens, false);                    
                 }
                 for_cycle.push_back(tokens);
             }
@@ -249,6 +261,7 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, std::to_string(i));
+                    ReplaceOptions(token);
                     tokens.push_back(token);
                 }
                 parsed_loop.push_back(tokens);
@@ -264,12 +277,22 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, i);
+                    ReplaceOptions(token);
                     tokens.push_back(token);
                 }
                 parsed_loop.push_back(tokens);
             }
 
     return parsed_loop;
+}
+
+//----compare specified option <key> of this cfg with <comp>
+bool CfgManager::CompareOption(const CfgManager& comp, const std::string key) const
+{
+    //---comparison is true if option exist in both cfgs and is identical or
+    //   if it doens't exist in neither of the two
+    return (OptExist(key, -1) && comp.OptExist(key, -1) && GetOpt<option_t >(key) == comp.GetOpt<option_t >(key)) ||
+        (!OptExist(key, -1) && !comp.OptExist(key, -1));
 }
 
 //----------Handle single option: key and parameters--------------------------------------
@@ -461,6 +484,35 @@ void CfgManager::Print(Option_t* option) const
     return;
 }
 
+//----------Write cfg to text file--------------------------------------------------------
+void CfgManager::WriteToFile(std::string filename, bool overwrite) const
+{
+    std::ifstream checkfile(filename);
+    if(checkfile && !overwrite)
+    {
+        std::cout << "> CfgManager::WriteToFile(std::string filename, bool overwrite) --- WARNING: file " << filename
+                  << " already exists:  specify different filename or set overwrite to true."
+                  << std::endl;
+        return;
+    }
+
+    std::ofstream dump(filename);
+    if(dump.is_open())
+    {
+        //---IMPROVEME
+        for(auto& key : opts_)
+        {
+            if(key.second.size())
+            {
+                dump << key.first.substr(key.first.find_first_of(".")+1) << " ";
+                for(auto& opt : key.second)
+                    dump << "'" << opt << "' ";
+                dump << std::endl;
+            }
+        }
+    }
+}
+
 //----------Lookup for full option/block name---------------------------------------------
 //---search for option/block in the options map:
 //---1) first for an exact match
@@ -484,17 +536,17 @@ std::string CfgManager::Lookup(std::string& current_block, std::string& token, s
 }
 
 //----------Internal error check----------------------------------------------------------
-void CfgManager::Errors(std::string key, int opt)
+void CfgManager::Errors(std::string key, int opt) const
 {
     if(opts_.count(key) == 0)
     {
         std::cout << "> CfgManager --- ERROR: key '"<< key.substr(5, key.size()) << "' not found" << std::endl;
         exit(-1);
     }
-    if(opt >= int(opts_[key].size()))
+    if(opt >= int(opts_.at(key).size()))
     {
         std::cout << "> CfgManager --- ERROR: option '"<< key.substr(5, key.size()) << "' as less then "
-             << opt << "values (" << opts_[key].size() << ")" << std::endl;
+             << opt << "values (" << opts_.at(key).size() << ")" << std::endl;
         exit(-1);
     }
     return;
