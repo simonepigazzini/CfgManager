@@ -241,6 +241,12 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
     }        
     auto loop_def = for_cycle.at(0);
     auto loop_var = loop_def.at(1);
+    std::string loop_counter;
+    if(loop_var.find(",") != std::string::npos)
+    {
+        loop_counter = loop_var.substr(0, loop_var.find(","));
+        loop_var = loop_var.substr(loop_var.find(",")+1);
+    }    
     for_cycle.pop_back();
     for_cycle.erase(for_cycle.begin());
 
@@ -269,7 +275,10 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
     }
     //---for each loop, third argument must be a valid option.
     else if(loop_def.size() == 3 && OptExist(loop_def.at(2)))
+    {
+        unsigned int cnt = 0;
         for(auto& i : GetOpt<option_t >(loop_def.at(2)))
+        {
             for(auto& line : for_cycle)
             {
                 option_t tokens;                
@@ -277,12 +286,17 @@ voption_t CfgManager::HandleForLoop(voption_t& for_cycle)
                 {
                     while(token.find("$"+loop_var) != std::string::npos)
                         token.replace(token.find("$"+loop_var), loop_var.size()+1, i);
+                    while(loop_counter != "" && token.find("$"+loop_counter) != std::string::npos)
+                        token.replace(token.find("$"+loop_counter), loop_counter.size()+1, std::to_string(cnt));
                     ReplaceOptions(token);
                     tokens.push_back(token);
                 }
                 parsed_loop.push_back(tokens);
             }
-
+            ++cnt;
+        }
+    }
+    
     return parsed_loop;
 }
 
