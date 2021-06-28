@@ -3,12 +3,9 @@ import sys
 import re
 import time
 import argparse
-oldargv = sys.argv[:]
-sys.argv = [ '-b-' ]
 import ROOT, os
 from ROOT import std
 ROOT.gROOT.SetBatch(True)
-sys.argv = oldargv
 
 ROOT.gSystem.Load("lib/libCFGMan.so")
 
@@ -24,8 +21,9 @@ test_string = cfg.GetOpt("test.stringa")
 print(test_string)
 print(cfg.GetOpt("test.stringa", 1))
 
-for opt in cfg.GetOpt(std.vector(std.string))("test.newline"):
+for opt in cfg.GetOpt["std::vector<std::string>"]("test.newline"):
     print(opt)
 
 sub_cfg = cfg.GetSubCfg("test3.subtest1")
 sub_cfg.Print()
+
