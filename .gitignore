@@ -15,6 +15,9 @@
 *.a
 *.lib
 
+# Temporary files
+*~
+
 £ ROOT lib map objects
 *.pcm
 *.rootmap

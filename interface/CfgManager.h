@@ -17,13 +17,11 @@
 #include <iomanip>
 #include <regex>
 
-#include "TObject.h"
-
 //---data structures
 typedef std::vector<std::string> option_t;
 typedef std::vector<option_t>    voption_t;
     
-class CfgManager: public TObject
+class CfgManager
 {    
 public:
     //---ctors---
@@ -52,8 +50,8 @@ public:
     inline void            ParseConfigFile(const std::string file) {ParseConfigFile(file.c_str());};
     void                   ParseConfigFile(const char* file);
     void                   ParseConfigString(const std::string config);
-    virtual void           Print(std::ostream& out, Option_t* option="") const;
-    virtual void           Print(Option_t* option="") const;
+    // virtual void           Print(std::ostream& out, Option_t* option="") const;
+    // virtual void           Print(Option_t* option="") const;
     void                   WriteToFile(std::string filename="dump.cfg", bool overwrite=false) const;
     bool                   CompareOption(const CfgManager& comp, std::string key) const;
     
@@ -77,8 +75,6 @@ private:
     std::string username_;
     std::string timestamp_;
 
-    //---ROOT dictionary---
-    ClassDef(CfgManager, 1)
 };
 
 #endif
