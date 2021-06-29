@@ -449,46 +449,46 @@ void CfgManager::CopyBlock(std::string& current_block, std::string& block_to_cop
 
 //----------Print formatted version of the cfg--------------------------------------------
 //---option is the key to be print: default value meas "all keys"
-// void CfgManager::Print(std::ostream& out, Option_t* option) const
-// {
-//     std::string argkey = option;
-//     //---banner
-//     std::string banner = "configuration was created by "+username_+" on "+timestamp_;
-//     for(int i=0; i<banner.size(); ++i)
-//         out << "=";
-//     out << std::endl;
-//     out << banner << std::endl;
-//     for(int i=0; i<banner.size(); ++i)
-//         out << "=";
-//     out << std::endl;
+std::string CfgManager::AsString(std::string option) const
+{
+    //---banner
+    std::stringstream out;
+    std::string banner = "configuration was created by "+username_+" on "+timestamp_;
+    for(int i=0; i<banner.size(); ++i)
+        out << "=";
+    out << std::endl;
+    out << banner << std::endl;
+    for(int i=0; i<banner.size(); ++i)
+        out << "=";
+    out << std::endl;
     
-//     //---options
-//     std::string prev_block="";
-//     for(auto& key : opts_)
-//     {
-//         std::string current_block = key.first.substr(5, key.first.find_last_of(".")-5);
-//         if(argkey == "" || key.first.find(argkey) != std::string::npos)
-//         {
-//             if(current_block != prev_block)
-//             {
-//                 if(prev_block != "")
-//                     out << "+----------" << std::endl;
-//                 out << current_block << ":" << std::endl;
-//                 prev_block = current_block;
-//             }
-//             if(key.second.size())
-//             {
-//                 out << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
-//                 for(auto& opt : key.second)
-//                     out << opt << ", " ;
-//                 out << std::endl;
-//             }
-//         }
-//     }
-//     out << "+----------" << std::endl;
+    //---options
+    std::string prev_block="";
+    for(auto& key : opts_)
+    {
+        std::string current_block = key.first.substr(5, key.first.find_last_of(".")-5);
+        if(option == "" || key.first.find(option) != std::string::npos)
+        {
+            if(current_block != prev_block)
+            {
+                if(prev_block != "")
+                    out << "+----------" << std::endl;
+                out << current_block << ":" << std::endl;
+                prev_block = current_block;
+            }
+            if(key.second.size())
+            {
+                out << "|----->" << key.first.substr(key.first.find_last_of(".")+1) << ": ";
+                for(auto& opt : key.second)
+                    out << opt << ", " ;
+                out << std::endl;
+            }
+        }
+    }
+    out << "+----------" << std::endl;
 
-//     return;
-// }
+    return out.str();
+}
 
 // //----------ROOT-style Print function-----------------------------------------------------
 // void CfgManager::Print(Option_t* option) const
