@@ -1,8 +1,0 @@
-setup.py
-_skbuild/linux-x86_64-3.9/cmake-install/src/cfgmanager/__init__.py
-src/cfgmanager.egg-info/PKG-INFO
-src/cfgmanager.egg-info/SOURCES.txt
-src/cfgmanager.egg-info/dependency_links.txt
-src/cfgmanager.egg-info/not-zip-safe
-src/cfgmanager.egg-info/top_level.txt
-test/test.py
