@@ -1,5 +1,5 @@
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "CfgManager.h"
+#include "CfgManagerT.h"
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 
@@ -9,10 +9,16 @@ PYBIND11_MODULE(cfgmanager, m) {
     pybind11::class_<CfgManager>(m, "CfgManager")
         .def(pybind11::init<const char*>())
         .def(pybind11::init())
-        .def("GetOpt", &CfgManager::GetOpt<std::string>)
-        .def("GetOpt", &CfgManager::GetOpt<std::vector<std::string> >)
-        .def("GetOpt", &CfgManager::GetOpt<double>)
-        .def("GetOpt", &CfgManager::GetOpt<std::vector<double> >)
+        .def("GetOpt", &CfgManager::GetOpt<std::string>,
+             "Get a single field from option",
+             pybind11::arg("key"),
+             pybind11::arg("opt") = 0
+            )
+        .def("GetVOpt", &CfgManager::GetOpt<std::vector<std::string> >,
+             "Get all fields from option",
+             pybind11::arg("key"),
+             pybind11::arg("opt") = 0
+            )
         .def("SetOpt", (void (CfgManager::*)(const char* , option_t&)) &CfgManager::SetOpt,
              "Set option",
              pybind11::arg("key"),

@@ -1,5 +1,5 @@
-#include "interface/CfgManager.h"
-#include "interface/CfgManagerT.h"
+#include "CfgManager.h"
+#include "CfgManagerT.h"
 
 //**********getters***********************************************************************
 //----------GetSubCfg---------------------------------------------------------------------
