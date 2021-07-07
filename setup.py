@@ -32,9 +32,9 @@ class InstallWrapper(install):
         # Run this first so the install stops in case 
         # these fail otherwise the Python package is
         # successfully installed
-        self._copy_shared_libs(glob.glob(self.build_lib+"/cfgmanager/lib/*"))
         # Run the standard PyPi copy
         install.run(self)
+        self._copy_shared_libs(glob.glob(self.build_lib+"/cfgmanager/lib/*"))
 
     def _copy_shared_libs(self, libs):
         # Check to see that the required folders exists 
