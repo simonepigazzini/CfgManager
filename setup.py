@@ -52,7 +52,7 @@ class InstallWrapper(install):
         # Clean target and copy files
         for lib in libs:        
             target_path = os.path.join(
-            self._TARGET_ROOT_PATH, lib)
+                self._TARGET_ROOT_PATH, os.path.basename(lib))
 
             # If this exists at the target then 
             # remove it to ensure the target is clean
@@ -60,7 +60,7 @@ class InstallWrapper(install):
                 shutil.rmtree(target_path)
 
             # Copy the files from the archive
-            shutil.copytree(lib, target_path)
+            shutil.copy2(lib, target_path, follow_symlinks=False)
 
 setup(
     name="cfgmanager",
