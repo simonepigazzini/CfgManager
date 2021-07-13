@@ -18,6 +18,7 @@ from setuptools import find_packages
 
 import os, shutil, glob
 from setuptools.command.install import install
+from distutils.sysconfig import get_python_lib
 
 class InstallWrapper(install):
     """Provides a install wrapper for WSGI applications
@@ -26,7 +27,7 @@ class InstallWrapper(install):
     in MANIFEST.in and don't really belong in the 
     Python package."""
 
-    _TARGET_ROOT_PATH = "/usr/local/lib/"
+    _TARGET_ROOT_PATH = '/'.join(get_python_lib().split('/')[:-2])+'/'
 
     def run(self):
         # Run this first so the install stops in case 
