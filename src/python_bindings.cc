@@ -10,12 +10,22 @@ PYBIND11_MODULE(cfgmanager, m) {
         .def(pybind11::init<const char*>())
         .def(pybind11::init())
         .def("GetOpt", &CfgManager::GetOpt<std::string>,
-             "Get a single field from option",
+             "Get a single field from option as string",
+             pybind11::arg("key"),
+             pybind11::arg("opt") = 0
+            )
+        .def("GetDoubleOpt", &CfgManager::GetOpt<double>,
+             "Get a single field from option as double",
              pybind11::arg("key"),
              pybind11::arg("opt") = 0
             )
         .def("GetVOpt", &CfgManager::GetOpt<std::vector<std::string> >,
-             "Get all fields from option",
+             "Get all fields from option as strings",
+             pybind11::arg("key"),
+             pybind11::arg("opt") = 0
+            )
+        .def("GetVDoubleOpt", &CfgManager::GetOpt<std::vector<double> >,
+             "Get all fields from option as doubles",
              pybind11::arg("key"),
              pybind11::arg("opt") = 0
             )
