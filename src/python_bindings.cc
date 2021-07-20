@@ -33,7 +33,10 @@ PYBIND11_MODULE(cfgmanager, m) {
              "Set option",
              pybind11::arg("key"),
              pybind11::arg("v_opt"))
-        .def("OptExist", &CfgManager::OptExist)
+        .def("OptExist", &CfgManager::OptExist
+             "Check if option exist",
+             pybind11::arg("key"),
+             pybind11::arg("opt") = 0)
         .def("GetSubCfg", (CfgManager (CfgManager::*)(std::string) const) &CfgManager::GetSubCfg,
              "Get the a single cfg block",
              pybind11::arg("block"))
